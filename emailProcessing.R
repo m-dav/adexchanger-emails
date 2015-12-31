@@ -126,7 +126,7 @@ for (i in 1:length(filelist)){
 }
 
 colnames(output) <- c('dt','text')
-write.csv(output,'/Users/markdavenport/Documents/adexchanger/raw_output.csv')
+#write.csv(output,'/Users/markdavenport/Documents/adexchanger/raw_output.csv')
 
 #### process data
 dts <- unique(format(as.Date(output$dt), "%Y%m"))
