@@ -176,10 +176,12 @@ myStopwords <- c(stopwords("english"),
                  'adexchangercom',
                  'newsletter',
                  'targetinfo',
-                 'adexchanger')
+                 'adexchanger',
+                 'roundup',
+                 'also')
 # remove stopwords from corpus
 myCorpus <- tm_map(myCorpus, removeWords, myStopwords)
-#
+
 #￼# keep a copy of corpus to use later as a dictionary for stem
 # completion
 myCorpusCopy <- myCorpus
@@ -187,10 +189,8 @@ myCorpusCopy <- myCorpus
 myCorpus <- tm_map(myCorpus, stemDocument)
 
 myCorpus <- tm_map(myCorpus, PlainTextDocument)
-
 dtm <-  DocumentTermMatrix(myCorpus)
 rownames(dtm) <- df$date
-
 
 terms <- findFreqTerms(dtm, 1000)
 terms
