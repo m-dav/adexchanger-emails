@@ -203,16 +203,22 @@ myCorpus <- tm_map(myCorpus, stemDocument, language="english")
 myCorpus <- tm_map(myCorpus, PlainTextDocument)
 
 dtm <-  DocumentTermMatrix(myCorpus)
-dtmTFIDF <- DocumentTermMatrix(myCorpus,
-                               control = list(weighting = function(x) weightTfIdf(x, normalize = FALSE)))
+dtmNonStemmed <-  DocumentTermMatrix(myCorpusCopy)
+#dtmTFIDF <- DocumentTermMatrix(myCorpus,
+#                               control = list(weighting = function(x) weightTfIdf(x, normalize = FALSE)))
 rownames(dtm) <- df$date
-rownames(dtmTFIDF) <- df$date
+rownames(dtmNonStemmed) <- df$date
+#rownames(dtmTFIDF) <- df$date
 
 terms <- findFreqTerms(dtm,1000)
 terms
 
-termsTFIDF <- findFreqTerms(dtmTFIDF,100,1000)
-termsTFIDF
+terms <- findFreqTerms(dtmNonStemmed,1000)
+terms
+
+#termsTFIDF <- findFreqTerms(dtmTFIDF,100,1000)
+#termsTFIDF
 
 
-save(dtmTFIDF, file = "/Users/markdavenport/Documents/adexchanger/dtm.RData")
+save(dtm, file = "/Users/markdavenport/Documents/adexchanger/dtm.RData")
+save(dtmNonStemmed, file = "/Users/markdavenport/Documents/adexchanger/dtmNonStemmed.RData")
