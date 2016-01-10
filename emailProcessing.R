@@ -220,5 +220,5 @@ terms
 #termsTFIDF
 
 
-save(dtm, file = "/Users/markdavenport/Documents/adexchanger/dtm.RData")
-save(dtmNonStemmed, file = "/Users/markdavenport/Documents/adexchanger/dtmNonStemmed.RData")
+save(dtm, file = "/Users/markdavenport/Documents/adexchanger-emails/dtm.RData")
+save(dtmNonStemmed, file = "/Users/markdavenport/Documents/adexchanger-emails/dtmNonStemmed.RData")

@@ -18,17 +18,21 @@ library(ggplot2)
 library(dplyr)
 library(topicmodels)
 library(knitr)
-#setwd('/Users/markdavenport/Documents/adexchanger/')
-#dtm <- load('/Users/markdavenport/Documents/adexchanger/dtm.RData')
+#setwd('/Users/markdavenport/Documents/adexchanger-emails/')
+#load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
 load('dtm.RData')
-terms <- findFreqTerms(dtm, 2000)
+
+terms2000 <- findFreqTerms(dtm, 2000)
+terms50 <- findFreqTerms(dtm, 50)
 ```
 
-Most frequenct terms:
+Most frequent terms (> 2000 mentions):
 ```{r echo=FALSE }
-terms
+terms2000
 
 ```
+
+
 
 ## explore most frequent terms
 
@@ -36,7 +40,7 @@ terms
 
 inputPanel(
   selectInput("term", label = "term:",
-              choices = terms, selected = 'accord')
+              choices = terms2000, selected = 'accord')
 )
 
 
@@ -69,7 +73,7 @@ renderPlot({
 inputPanel(
 #  selectizeInput(inputId, label, choices, selected = NULL, multiple = FALSE,
 #               options = NULL)
-selectizeInput('termToExplore', label = NULL, choices = colnames(dtm),
+selectizeInput('termToExplore', label = NULL, choices = terms50,
   options = list(create = TRUE)
 )
 )
@@ -104,12 +108,12 @@ fluidPage(
     fluidRow(
       column(4, 
           selectizeInput(
-        'termToExplore2', 'Second term', choices = colnames(dtm)
+        'termToExplore2', 'Second term', choices = terms50
         )
       ),
       column(4, 
           selectInput(
-        'termToExplore1', 'First term', choices = colnames(dtm)
+        'termToExplore1', 'First term', choices = terms50
         )
       )     
     )
@@ -187,5 +191,6 @@ fluidPage(
 
 
 ```
+
 
 

@@ -1,0 +1,1027 @@
+---
+title: "adexchanger blog post"
+author: "mark davenport"
+date: "January 9, 2016"
+output: html_document
+---
+
+
+```{r include=FALSE}
+library(tm)
+library(wordcloud) 
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(topicmodels)
+library(reshape2)
+
+load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
+
+
+```
+
+
+### mergers and acquisitions
+
+```{r, echo=FALSE}
+#interesting trends:
+
+
+termToExplore1 <- 'acquir'
+termToExplore2 <- 'acquisit'
+termToExplore3 <- 'merger'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+  term_to_compare3 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore3)])
+  
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+  df[,'percentMentions3'] <- as.numeric(term_to_compare3/all_terms)
+  
+  colnames(df) <- c('dt','percentMentions1','percentMentions2','percentMentions3')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2,termToExplore3)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,'vs',termToExplore3,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+
+### adblocking
+
+```{r, echo=FALSE}
+
+termToExplore1 <- 'adblock'
+#termToExplore2 <- 'block'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+#  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+#  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+#  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+#       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+#    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+### viewability
+
+```{r, echo=FALSE}
+
+
+termToExplore1 <- 'viewabl'
+termToExplore2 <- 'view'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+### xdevice and omnichannel
+
+```{r, echo=FALSE}
+#interesting trends:
+#
+#
+#
+#app
+#attribut
+#audio
+#
+#broadcast
+#
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#firstparti vs thirdparti
+#food
+#fraud
+#groupm vs omnicom
+#hava
+#local
+#machin vs man
+#market vs advertis
+#
+#optim
+#platform
+#podcast
+#polit
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#tech
+#television
+#thetradedesk
+#transpar
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+termToExplore1 <- 'crossdevic'
+termToExplore2 <- 'omnichannel'
+#termToExplore2 <- 'multichannel'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+
+### advertising vs marketing
+
+```{r, echo=FALSE}
+
+
+termToExplore1 <- 'advertis'
+termToExplore2 <- 'market'
+#termToExplore2 <- 'multichannel'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+### native
+
+```{r, echo=FALSE}
+
+termToExplore1 <- 'nativ'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+```
+
+
+
+### rtb vs programmatic
+
+```{r, echo=FALSE}
+
+
+termToExplore1 <- 'rtb'
+termToExplore2 <- 'programmat'
+termToExplore3 <- 'network'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+  term_to_compare3 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore3)])
+  
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+  df[,'percentMentions3'] <- as.numeric(term_to_compare3/all_terms)
+  
+  colnames(df) <- c('dt','percentMentions1','percentMentions2','percentMentions3')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2,termToExplore3)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,'vs',termToExplore3,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+
+
+
+```
+
+
+### remnant inventory
+
+```{r, echo=FALSE}
+
+
+termToExplore1 <- 'remnant'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+### inhous
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#app
+#attribut
+#audio
+#broadcast
+#display vs email vs inapp vs linear vs native vs newspap
+#firstparti vs thirdparti
+#food
+#fraud
+#groupm vs omnicom
+#hava
+#local
+#machin vs man
+#optim
+#platform
+#podcast
+#polit
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#tech
+#television
+#thetradedesk
+#transpar
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'inhous'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+### fraud
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#app
+#attribut
+#audio
+#broadcast
+#display vs email vs inapp vs linear vs native vs newspap
+#firstparti vs thirdparti
+#food
+#
+#groupm vs omnicom
+#hava
+#local
+#machin vs man
+#optim
+#platform
+#podcast
+#polit
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#tech
+#television
+#thetradedesk
+#transpar
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'fraud'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+### politics
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#tech
+#television
+#thetradedesk
+#transpar
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'polit'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+### tech
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#
+#television
+#thetradedesk
+#transpar
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'tech'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+### transparency
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#
+#television
+#thetradedesk
+#
+#unifi
+#ventur
+#view / viewabl
+#wpp
+
+#joke:
+#infograph
+#remnant <— death of remnant inventory
+#veteran
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#ipo
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'transpar'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+### ipo
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#
+#television
+#thetradedesk
+#
+#
+#ventur
+#
+  
+#joke:
+#infograph
+
+#flat trends:
+#algorithm
+#cookie
+#data
+#scale
+
+#large decline:
+#autom
+#online
+#inhous
+#
+#retarget
+#sellsid
+#vivaki
+#youtube
+
+#creativ
+#ceo vs cfo vs cmo vs cro vs coo vs cto
+#billion vs trillion vs million?
+#supply vs demand
+#rtb vs Programmat vs network vs realtim
+#dap
+
+
+
+termToExplore1 <- 'ipo'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+### ipo
+
+```{r, echo=FALSE}
+
+#interesting trends:
+#display vs email vs inapp vs linear vs native vs newspap
+#
+#publish
+#push
+#science / scientist
+#stack
+#tap
+#
+#television
+#
+
+
+
+
+termToExplore1 <- 'inapp'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+```
+
+
+```{r echo=FALSE}
+  
+termToExplore1 <- 'inapp'
+termToExplore2 <- 'crossdevic'
+#termToExplore3 <- 'multichannel'
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
+  
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+
+
+  
+```
+
+
+### words of 2015
+
+```{r echo=FALSE}
+ix <- rownames(as.matrix(dtm))%in%c("201501","201502","201503","201504","201505", "201506", "201507", "201508", "201509", "201510", "201511", "201512")
+da2015 <- as.matrix(dtm)
+da2015 <- da2015[ix,]
+all_terms <- colSums(da2015)
+mostUsedWords <- as.matrix(all_terms[all_terms>100])
+colnames(mostUsedWords) <- 'wordCount'
+mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
+mostUsedWords <- as.matrix(mostUsedWords[1:10])
+colnames(mostUsedWords) <- 'wordCount'
+kable(mostUsedWords)
+```
+
+### top 10 words of 2014
+
+```{r echo=FALSE}
+ix <- rownames(as.matrix(dtm))%in%
+  c("201401",
+    "201402",
+    "201403",
+    "201404",
+    "201405", 
+    "201406", 
+    "201407", 
+    "201408", 
+    "201409", 
+    "201410", 
+    "201411", 
+    "201412")
+da2014 <- as.matrix(dtm)
+da2014 <- da2014[ix,]
+all_terms <- colSums(da2014)
+mostUsedWords <- as.matrix(all_terms[all_terms>100])
+colnames(mostUsedWords) <- 'wordCount'
+mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
+mostUsedWords <- as.matrix(mostUsedWords[1:10])
+colnames(mostUsedWords) <- 'wordCount'
+kable(mostUsedWords)
+```
+
+### top 10 words of 2013
+
+```{r echo=FALSE}
+ix <- rownames(as.matrix(dtm))%in%
+  c("201301",
+    "201302",
+    "201303",
+    "201304",
+    "201305", 
+    "201306", 
+    "201307", 
+    "201308", 
+    "201309", 
+    "201310", 
+    "201311", 
+    "201312")
+da2013 <- as.matrix(dtm)
+da2013 <- da2013[ix,]
+all_terms <- colSums(da2014)
+mostUsedWords <- as.matrix(all_terms[all_terms>100])
+colnames(mostUsedWords) <- 'wordCount'
+mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
+mostUsedWords <- as.matrix(mostUsedWords[1:10])
+colnames(mostUsedWords) <- 'wordCount'
+kable(mostUsedWords)
+```
+
+### top 10 words of 2012
+
+```{r echo=FALSE}
+ix <- rownames(as.matrix(dtm))%in%
+  c("201201",
+    "201202",
+    "201203",
+    "201204",
+    "201205", 
+    "201206", 
+    "201207", 
+    "201208", 
+    "201209", 
+    "201210", 
+    "201211", 
+    "201212")
+da2012 <- as.matrix(dtm)
+da2012 <- da2012[ix,]
+all_terms <- colSums(da2014)
+mostUsedWords <- as.matrix(all_terms[all_terms>100])
+colnames(mostUsedWords) <- 'wordCount'
+mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
+mostUsedWords <- as.matrix(mostUsedWords[1:10])
+colnames(mostUsedWords) <- 'wordCount'
+kable(mostUsedWords)
+```
