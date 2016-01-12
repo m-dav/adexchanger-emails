@@ -8,6 +8,7 @@ output: html_document
 
 ```{r include=FALSE}
 library(tm)
+library(knitr)
 library(wordcloud) 
 library(ggplot2)
 library(dplyr)
@@ -20,39 +21,118 @@ load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
 
 ```
 
+### introduction
+adtech is an echo chamber. there are only a small number of media outlets that cover our industry, largely because it's so niche, and the result is a relatively small number of people owning a large amount of the discourse. what that results in are ebbs and flows of ideas; topics come into style very quickly and dominate the industry conversation (e.g. ad-blocking), while other topics fall out of favor just as fast (e.g. native).  
 
-### mergers and acquisitions
+in this post, i am going to explore some of these ebbs and flows in ideas in the industry by analyzing the words from adexchanger daily newsletters over the last few years. my goal is to understand which topics dominated the industry conversation over time, which ones led short lives, and which ones will persist into 2016.  
+
+before i do, i want to give a brief background on text analysis.   
+
+### text analysis
+i started subscribing to the adexchanger daily newsletter in november of 2011. for this post, i took each of the emails i received through the end of december of 2015 and scraped the text from each email. the daily newsletter is broken into sections, and for this post i focused on the portions starting from "Today from Adexchanger..." and stopping at "But wait, there's more!"  
+
+once i scraped the text, i did some processing of all the words. without going into gory details, i'll give an example to explain what kind of processing i did.  
+
+consider this sentence: "Many advertisers were advertising with advertisements in major media markets last year, across the U.S.A. and Europe." to get at the interesting stuff, i removed any URLs, made everything lowercase, removed punctuation, removed commonly used words (e.g. "the" or "and"), and stemmed the words so that words like "advertisers" and "advertising" relate to the same word. doing all of that and counting word occurrences resulted in our sentence being reduced to this: 
+
+```{r echo=FALSE}
+# build a corpus, and specify the source to be character vectors
+
+myCorpus <- Corpus(VectorSource('Many advertisers were advertising with advertisements in major media markets last year, across the U.S.A. and Europe.'))
+myCorpus <- tm_map(myCorpus,
+                   content_transformer(function(x) iconv(x, to='UTF-8-MAC', sub='byte')),
+                   mc.cores=1)
+
+myCorpus <- tm_map(myCorpus, content_transformer(tolower))
+# remove punctuation
+myCorpus <- tm_map(myCorpus, removePunctuation) 
+# remove numbers
+myCorpus <- tm_map(myCorpus, removeNumbers)
+
+# add two extra stop words: 'available' and 'via'
+myStopwords <- c(stopwords("english"))
+myCorpus <- tm_map(myCorpus, removeWords, myStopwords)
+
+#￼# keep a copy of corpus to use later as a dictionary for stem
+# completion
+myCorpusCopy <- myCorpus
+# stem words
+myCorpus <- tm_map(myCorpus, stemDocument, language="english")
+myCorpus <- tm_map(myCorpus, PlainTextDocument)
+
+dtmExample <-  DocumentTermMatrix(myCorpus)
+rownames(dtmExample) <- "my corpus"
+kable(as.matrix(dtmExample))
+
+```
+
+### rtb vs programmatic
+
+the first trend that's interesting is the description of our industry: 2013 was the death of RTB. in that year, programmatic became the nom de rigueur for our industry. 
 
 ```{r, echo=FALSE}
-#interesting trends:
 
-
-termToExplore1 <- 'acquir'
-termToExplore2 <- 'acquisit'
-termToExplore3 <- 'merger'
+termToExplore1 <- 'rtb'
+termToExplore2 <- 'programmat'
 
   all_terms <- rowSums(as.matrix(dtm))
   term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
   term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
-  term_to_compare3 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore3)])
   
   dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
   
   df <- data.frame(dts)
   df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
   df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
-  df[,'percentMentions3'] <- as.numeric(term_to_compare3/all_terms)
-  
-  colnames(df) <- c('dt','percentMentions1','percentMentions2','percentMentions3')
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
   df_plot <- melt(df, id="dt")
   
   ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2,termToExplore3)))) +
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
     geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,'vs',termToExplore3,sep=" ")) +
+    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
+
+
+
+
+
+```
+
+
+### remnant inventory
+in the year 2013, we also witnessed the death of "remnant" inventory. no one wants to talk about it, it's not descriptive anymoref or the inventory we're dealing in. 
+
+```{r, echo=FALSE}
+
+
+termToExplore1 <- 'remnant'
+
+
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
+
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
 
 
 
@@ -60,7 +140,9 @@ termToExplore3 <- 'merger'
 
 
 
+
 ### adblocking
+the topic of 2015 was definitely ad-blocking. there was >8x increase in use of that word in 2015 than in the years 2011-2014. 
 
 ```{r, echo=FALSE}
 
@@ -89,14 +171,17 @@ termToExplore1 <- 'adblock'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
 
-
+#(sum(term_to_compare1[39:50])/sum(all_terms[39:50]))/(sum(term_to_compare1[1:38])/sum(all_terms[1:38]))
 
 ```
 
 
 ### viewability
+
+we can also see the uptick in viewability as a big trend of 2015. it was mentioned 3x more this year than in years past.  
 
 ```{r, echo=FALSE}
 
@@ -123,107 +208,43 @@ termToExplore2 <- 'view'
     ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
 
 ```
 
+### fraud
 
-### xdevice and omnichannel
+fraud has been a large topic in the news, increasing consistently from the end of 2011 to the end of 2015. fraud has leveled off. it is important that we as an industry continue to discuss it, but i expect it to remain at about the same percent of word usage. 
 
 ```{r, echo=FALSE}
-#interesting trends:
-#
-#
-#
-#app
-#attribut
-#audio
-#
-#broadcast
-#
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#firstparti vs thirdparti
-#food
-#fraud
-#groupm vs omnicom
-#hava
-#local
-#machin vs man
-#market vs advertis
-#
-#optim
-#platform
-#podcast
-#polit
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#tech
-#television
-#thetradedesk
-#transpar
-#unifi
-#ventur
-#view / viewabl
-#wpp
 
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
 
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
+termToExplore1 <- 'fraud'
 
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
-
-termToExplore1 <- 'crossdevic'
-termToExplore2 <- 'omnichannel'
-#termToExplore2 <- 'multichannel'
 
   all_terms <- rowSums(as.matrix(dtm))
   term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
 
   dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
   
   df <- data.frame(dts)
   df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
 
-  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  colnames(df) <- c('dt','percentMentions1')
   df_plot <- melt(df, id="dt")
   
   ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
+       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
     geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
+    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
 
 
 
@@ -231,42 +252,12 @@ termToExplore2 <- 'omnichannel'
 
 
 
-### advertising vs marketing
 
-```{r, echo=FALSE}
-
-
-termToExplore1 <- 'advertis'
-termToExplore2 <- 'market'
-#termToExplore2 <- 'multichannel'
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
-
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
-
-  colnames(df) <- c('dt','percentMentions1','percentMentions2')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-
-```
 
 
 ### native
+
+native was big in 2014, but it was been less prevalent in the conversation in 2015. 
 
 ```{r, echo=FALSE}
 
@@ -290,59 +281,20 @@ termToExplore1 <- 'nativ'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
 
 
 
 ```
 
+### mobile
 
-
-### rtb vs programmatic
-
-```{r, echo=FALSE}
-
-
-termToExplore1 <- 'rtb'
-termToExplore2 <- 'programmat'
-termToExplore3 <- 'network'
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore2)])
-  term_to_compare3 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore3)])
-  
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
-  df[,'percentMentions3'] <- as.numeric(term_to_compare3/all_terms)
-  
-  colnames(df) <- c('dt','percentMentions1','percentMentions2','percentMentions3')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1,termToExplore2,termToExplore3)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,'vs',termToExplore3,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-
-
-
-```
-
-
-### remnant inventory
+native was big in 2014, but it was been less prevalent in the conversation in 2015. 
 
 ```{r, echo=FALSE}
 
-
-termToExplore1 <- 'remnant'
+termToExplore1 <- 'mobil'
 
 
   all_terms <- rowSums(as.matrix(dtm))
@@ -362,73 +314,20 @@ termToExplore1 <- 'remnant'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
 ```
 
+
+
 ### inhous
 
+the trned towards taking things "in-house" peaked in 2014, but has not been as large a part of the conversation in 2015.  
+
 ```{r, echo=FALSE}
-
-#interesting trends:
-#app
-#attribut
-#audio
-#broadcast
-#display vs email vs inapp vs linear vs native vs newspap
-#firstparti vs thirdparti
-#food
-#fraud
-#groupm vs omnicom
-#hava
-#local
-#machin vs man
-#optim
-#platform
-#podcast
-#polit
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#tech
-#television
-#thetradedesk
-#transpar
-#unifi
-#ventur
-#view / viewabl
-#wpp
-
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
 
 
 
@@ -452,151 +351,22 @@ termToExplore1 <- 'inhous'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
 ```
 
 
-### fraud
-
-```{r, echo=FALSE}
-
-#interesting trends:
-#app
-#attribut
-#audio
-#broadcast
-#display vs email vs inapp vs linear vs native vs newspap
-#firstparti vs thirdparti
-#food
-#
-#groupm vs omnicom
-#hava
-#local
-#machin vs man
-#optim
-#platform
-#podcast
-#polit
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#tech
-#television
-#thetradedesk
-#transpar
-#unifi
-#ventur
-#view / viewabl
-#wpp
-
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
-
-
-
-termToExplore1 <- 'fraud'
-
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-
-  colnames(df) <- c('dt','percentMentions1')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-```
 
 
 ### politics
 
+big increase in the use of "politics." 
+
+
 ```{r, echo=FALSE}
-
-#interesting trends:
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#tech
-#television
-#thetradedesk
-#transpar
-#unifi
-#ventur
-#view / viewabl
-#wpp
-
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
 
 
 
@@ -620,210 +390,19 @@ termToExplore1 <- 'polit'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
 ```
-
-
-### tech
-
-```{r, echo=FALSE}
-
-#interesting trends:
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#
-#television
-#thetradedesk
-#transpar
-#unifi
-#ventur
-#view / viewabl
-#wpp
-
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
-
-
-
-termToExplore1 <- 'tech'
-
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-
-  colnames(df) <- c('dt','percentMentions1')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-```
-
-### transparency
-
-```{r, echo=FALSE}
-
-#interesting trends:
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#
-#television
-#thetradedesk
-#
-#unifi
-#ventur
-#view / viewabl
-#wpp
-
-#joke:
-#infograph
-#remnant <— death of remnant inventory
-#veteran
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#ipo
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
-
-
-
-termToExplore1 <- 'transpar'
-
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-
-  colnames(df) <- c('dt','percentMentions1')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-```
-
 
 ### ipo
 
+big increase in the use of "politics." 
+
+
 ```{r, echo=FALSE}
-
-#interesting trends:
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#
-#television
-#thetradedesk
-#
-#
-#ventur
-#
-  
-#joke:
-#infograph
-
-#flat trends:
-#algorithm
-#cookie
-#data
-#scale
-
-#large decline:
-#autom
-#online
-#inhous
-#
-#retarget
-#sellsid
-#vivaki
-#youtube
-
-#creativ
-#ceo vs cfo vs cmo vs cro vs coo vs cto
-#billion vs trillion vs million?
-#supply vs demand
-#rtb vs Programmat vs network vs realtim
-#dap
 
 
 
@@ -847,61 +426,28 @@ termToExplore1 <- 'ipo'
     ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
 ```
 
 
-### ipo
-
-```{r, echo=FALSE}
-
-#interesting trends:
-#display vs email vs inapp vs linear vs native vs newspap
-#
-#publish
-#push
-#science / scientist
-#stack
-#tap
-#
-#television
-#
 
 
 
+### omnichannel
 
-termToExplore1 <- 'inapp'
-
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
-
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
-
-  colnames(df) <- c('dt','percentMentions1')
-  df_plot <- melt(df, id="dt")
-  
-  ggplot(data=df_plot,
-       aes(x=dt, y=value, color=factor(variable,labels=c(termToExplore1)))) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Terms to compare:",termToExplore1,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
-
-
-```
 
 
 ```{r echo=FALSE}
   
-termToExplore1 <- 'inapp'
-termToExplore2 <- 'crossdevic'
+#termToExplore1 <- 'inapp'
+#termToExplore2 <- 'crossdevic'
 #termToExplore3 <- 'multichannel'
+termToExplore1 <- 'multichannel'
+termToExplore2 <- 'omnichannel'
 
   all_terms <- rowSums(as.matrix(dtm))
   term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==termToExplore1)])
@@ -923,105 +469,25 @@ termToExplore2 <- 'crossdevic'
     ggtitle(paste("Terms to compare:",termToExplore1,'vs',termToExplore2,sep=" ")) +
     xlab("Date of Newsletter") +
     ylab("Proportion of words dedicated to term") + 
-    geom_smooth() + labs(color = "Terms to Compare")
+    geom_smooth(se = FALSE) + labs(color = "Terms to Compare")  +
+    scale_y_continuous(limits = c(0, NA))
+
 
 
   
 ```
 
 
-### words of 2015
+### omnichannel
 
-```{r echo=FALSE}
-ix <- rownames(as.matrix(dtm))%in%c("201501","201502","201503","201504","201505", "201506", "201507", "201508", "201509", "201510", "201511", "201512")
-da2015 <- as.matrix(dtm)
-da2015 <- da2015[ix,]
-all_terms <- colSums(da2015)
-mostUsedWords <- as.matrix(all_terms[all_terms>100])
-colnames(mostUsedWords) <- 'wordCount'
-mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
-mostUsedWords <- as.matrix(mostUsedWords[1:10])
-colnames(mostUsedWords) <- 'wordCount'
-kable(mostUsedWords)
-```
+some conclusions  
+* RTB and remnant inventory is dead as a description of our industry. programmatic is the nom de rigueur.  
+* adblocking was the hottest topic of 2015  
+* viewability was a large topic of 2015  
+* fraud as a topic is leveling off, and i'd expect it to plateau in word count  
+* native advertising is less interesting in 2015 than in 2014. mobile peaked in 2013, likely everyone trying to get their "year of mobile" predictions in  
+* taking it "in-house" was much less a part of the conversation in 2015 than in 2014.  
+* politics is a growing topic, and will continue to be a big topic in 2016 with the election.  
+* discussions about adtech financial activity has declined since 2013, and we're currently in a trough
 
-### top 10 words of 2014
 
-```{r echo=FALSE}
-ix <- rownames(as.matrix(dtm))%in%
-  c("201401",
-    "201402",
-    "201403",
-    "201404",
-    "201405", 
-    "201406", 
-    "201407", 
-    "201408", 
-    "201409", 
-    "201410", 
-    "201411", 
-    "201412")
-da2014 <- as.matrix(dtm)
-da2014 <- da2014[ix,]
-all_terms <- colSums(da2014)
-mostUsedWords <- as.matrix(all_terms[all_terms>100])
-colnames(mostUsedWords) <- 'wordCount'
-mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
-mostUsedWords <- as.matrix(mostUsedWords[1:10])
-colnames(mostUsedWords) <- 'wordCount'
-kable(mostUsedWords)
-```
-
-### top 10 words of 2013
-
-```{r echo=FALSE}
-ix <- rownames(as.matrix(dtm))%in%
-  c("201301",
-    "201302",
-    "201303",
-    "201304",
-    "201305", 
-    "201306", 
-    "201307", 
-    "201308", 
-    "201309", 
-    "201310", 
-    "201311", 
-    "201312")
-da2013 <- as.matrix(dtm)
-da2013 <- da2013[ix,]
-all_terms <- colSums(da2014)
-mostUsedWords <- as.matrix(all_terms[all_terms>100])
-colnames(mostUsedWords) <- 'wordCount'
-mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
-mostUsedWords <- as.matrix(mostUsedWords[1:10])
-colnames(mostUsedWords) <- 'wordCount'
-kable(mostUsedWords)
-```
-
-### top 10 words of 2012
-
-```{r echo=FALSE}
-ix <- rownames(as.matrix(dtm))%in%
-  c("201201",
-    "201202",
-    "201203",
-    "201204",
-    "201205", 
-    "201206", 
-    "201207", 
-    "201208", 
-    "201209", 
-    "201210", 
-    "201211", 
-    "201212")
-da2012 <- as.matrix(dtm)
-da2012 <- da2012[ix,]
-all_terms <- colSums(da2014)
-mostUsedWords <- as.matrix(all_terms[all_terms>100])
-colnames(mostUsedWords) <- 'wordCount'
-mostUsedWords <- mostUsedWords[order(mostUsedWords,decreasing = TRUE),]
-mostUsedWords <- as.matrix(mostUsedWords[1:10])
-colnames(mostUsedWords) <- 'wordCount'
-kable(mostUsedWords)
-```
