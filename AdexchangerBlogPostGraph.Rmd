@@ -1,0 +1,122 @@
+---
+title: "adexchanger emails"
+author: "mark davenport"
+date: "January 15, 2016"
+output: html_document
+runtime: shiny
+---
+
+## explore any terms
+
+
+```{r echo=FALSE, include=FALSE}
+## libraries
+library(tm)
+library(reshape2)
+library(wordcloud) 
+library(sqldf)
+library(ggplot2)
+library(dplyr)
+library(topicmodels)
+library(knitr)
+#setwd('/Users/markdavenport/Documents/adexchanger-emails/')
+#load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
+load('dtm.RData')
+terms2000 <- findFreqTerms(dtm, 2000)
+terms50 <- findFreqTerms(dtm, 50)
+
+```
+
+```{r, echo=FALSE}
+fluidPage(
+    # Create a new Row in the UI for selectInputs
+    fluidRow(
+      column(4, 
+          selectizeInput(
+        'termToExplore2', 'Second term', choices = terms50
+        )
+      ),
+      column(4, 
+          selectInput(
+        'termToExplore1', 'First term', choices = terms50
+        )
+      )     
+    )
+)
+
+renderPlot({
+  term1 <- input$termToExplore1
+  term2 <- input$termToExplore2
+  all_terms <- rowSums(as.matrix(dtm))
+  term_to_compare1 <- as.matrix(dtm[,which(colnames(dtm)==term1)])
+  term_to_compare2 <- as.matrix(dtm[,which(colnames(dtm)==term2)])
+  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
+  
+  df <- data.frame(dts)
+  df[,'percentMentions1'] <- as.numeric(term_to_compare1/all_terms)
+  df[,'percentMentions2'] <- as.numeric(term_to_compare2/all_terms)
+
+  colnames(df) <- c('dt','percentMentions1','percentMentions2')
+  df_plot <- melt(df, id="dt")
+  
+  ggplot(data=df_plot,
+       aes(x=dt, y=value, color=factor(variable,labels=c(term1,term2)))) +
+    geom_point(shape=1) +    # Use hollow circles
+    ggtitle(paste("Terms to compare:",term1,'vs',term2,sep=" ")) +
+    xlab("Date of Newsletter") +
+    ylab("Proportion of words dedicated to term") + 
+    geom_smooth() + labs(color = "Terms to Compare")
+  
+})
+
+```
+
+
+
+## word clouds by year
+
+```{r echo=FALSE}
+library(wordcloud)
+
+fluidPage(
+    # Application title
+    titlePanel("Word Cloud"),
+  
+    sidebarLayout(
+      # Sidebar with a slider and selection inputs
+      sidebarPanel(
+        selectInput('year', label = NULL, choices = c(2011:2015)),
+        hr(),
+        sliderInput("freq",
+                    "Minimum Frequency:",
+                    min = 1,  max = 50, value = 25),
+        sliderInput("max",
+                    "Maximum Number of Words:",
+                    min = 25,  max = 500,  value = 2)
+      ),
+  
+      # Show Word Cloud
+      mainPanel(
+        plotOutput("plot")
+      )
+    )
+  )
+
+
+  # Make the wordcloud drawing predictable during a session
+  wordcloud_rep <- repeatable(wordcloud)
+  
+  output$plot <- renderPlot({
+    m <- as.matrix(dtm)
+    ix <- as.numeric(substr(rownames(m),1,4))==input$year
+    v <- sort(colSums(m[ix,]), decreasing = T)
+    wordcloud_rep(names(v), v, scale=c(4,0.5),
+                  min.freq = input$freq, max.words=input$max,
+                  colors=brewer.pal(8, "Dark2"))
+  })
+
+
+```
+
+
+

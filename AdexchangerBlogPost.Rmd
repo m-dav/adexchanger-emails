@@ -22,23 +22,26 @@ load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
 ```
 
 ### introduction
-adtech is an echo chamber. there are only a small number of media outlets that cover our industry, largely because it's so niche, and the result is a relatively small number of people owning a large amount of the discourse. what that results in are ebbs and flows of ideas; topics come into style very quickly and dominate the industry conversation (e.g. ad-blocking), while other topics fall out of favor just as fast (e.g. native).  
+adtech is kind of like one big election cycle. you have a small group of niche technology companies that are trying to explain the industry and the valhue prop to a much larger group of people, some of whom understand what's going on, some of whom don't.  
 
-in this post, i am going to explore some of these ebbs and flows in ideas in the industry by analyzing the words from adexchanger daily newsletters over the last few years. my goal is to understand which topics dominated the industry conversation over time, which ones led short lives, and which ones will persist into 2016.  
+it's in that environment that rhetoric becomes very important. fraud and bots are big problems in the industry. but 
 
-before i do, i want to give a brief background on text analysis.   
 
-### text analysis
-i started subscribing to the adexchanger daily newsletter in november of 2011. for this post, i took each of the emails i received through the end of december of 2015 and scraped the text from each email. the daily newsletter is broken into sections, and for this post i focused on the portions starting from "Today from Adexchanger..." and stopping at "But wait, there's more!"  
+### introduction
+i started subscribing to adexchanger daily newsletters towards the end of 2011. they have since then been my main source for following the industry. over the years, i've anecdotally noticed trends in word usage and topics through time. the industry oftentimes feels like an echo chamber, where once a topic emerges, it gets reinforced over and over.   
 
-once i scraped the text, i did some processing of all the words. without going into gory details, i'll give an example to explain what kind of processing i did.  
+the idea of trying to quantify what topics have been popular in adtech through the years really interested me. so what i decided to do was scrape the text from every adexchanger newsletter i've received since the end of november, 2011, and see what trends i could find in word usage. 
 
-consider this sentence: "Many advertisers were advertising with advertisements in major media markets last year, across the U.S.A. and Europe." to get at the interesting stuff, i removed any URLs, made everything lowercase, removed punctuation, removed commonly used words (e.g. "the" or "and"), and stemmed the words so that words like "advertisers" and "advertising" relate to the same word. doing all of that and counting word occurrences resulted in our sentence being reduced to this: 
+the daily newsletter is broken into sections. you have the standard "Today from Adexchanger" section, the "But wait, there's more!" section, then typically a section dedicated to new hires, maybe some job postings and a calendar of events. for my purposes, i considered the meat of topics to come between the header "Today from adexchanger" and the "but wait, there's more!" section. anything outside of that, i ignored.  
+
+once i scraped the text, i did some processing of all the words. without going into gory details, i'll give an example to explain what kind of processing i did. 
+
+consider this sentence: "Many advertisers were advertising with advertisements in many media markets last year, across the U.S.A. and Europe." to get at the interesting stuff in that sentence, i removed any URLs, made everything lowercase, removed punctuation, removed commonly used words (e.g. "the" or "and"), and stemmed the words so that words like "advertisers" and "advertising" relate to the same word. doing all of that and counting word occurrences resulted in our sentence being reduced to this: 
 
 ```{r echo=FALSE}
 # build a corpus, and specify the source to be character vectors
 
-myCorpus <- Corpus(VectorSource('Many advertisers were advertising with advertisements in major media markets last year, across the U.S.A. and Europe.'))
+myCorpus <- Corpus(VectorSource('Many advertisers were advertising with advertisements in many media markets last year, across the U.S.A. and Europe.'))
 myCorpus <- tm_map(myCorpus,
                    content_transformer(function(x) iconv(x, to='UTF-8-MAC', sub='byte')),
                    mc.cores=1)
@@ -65,6 +68,11 @@ rownames(dtmExample) <- "my corpus"
 kable(as.matrix(dtmExample))
 
 ```
+
+given that, i then went through each email, grouped all the text for the month, processed it per the above, and then analyzed word usage through time. for this, i was mostly interested in the proportion of occurrences of a word by month. after all of teh processing, i was left with nearly 23k words across 50 months.  i then did some exploring of the data set through visualizations.  
+
+the graphs below represent some of the most interesting topical trends in the industry i was able to find. feel free to explore more of them here: 
+https://markedavenport.shinyapps.io/AdexchangerBlogPostGraph/
 
 ### rtb vs programmatic
 
@@ -106,7 +114,7 @@ termToExplore2 <- 'programmat'
 
 
 ### remnant inventory
-in the year 2013, we also witnessed the death of "remnant" inventory. no one wants to talk about it, it's not descriptive anymoref or the inventory we're dealing in. 
+in the year 2013, we also witnessed the death of "remnant" inventory. no one wants to talk about it, it's not descriptive anymore for the inventory we're dealing in, so we stopped using it. we were trying to move the conversation away from remnant inventory to more premium inventory.   
 
 ```{r, echo=FALSE}
 
@@ -218,7 +226,7 @@ termToExplore2 <- 'view'
 
 ### fraud
 
-fraud has been a large topic in the news, increasing consistently from the end of 2011 to the end of 2015. fraud has leveled off. it is important that we as an industry continue to discuss it, but i expect it to remain at about the same percent of word usage. 
+fraud has been a large topic in the news, increasing consistently from the end of 2011 to the end of 2015. fraud has leveled off in terms of how much word count we dedicate to it. it will always be evolving, so i would expect it to always take up some percent of word count, so in 2016 i'd expect fraud to remain at the level it hit at the end of 2015.   
 
 ```{r, echo=FALSE}
 
@@ -325,7 +333,7 @@ termToExplore1 <- 'mobil'
 
 ### inhous
 
-the trned towards taking things "in-house" peaked in 2014, but has not been as large a part of the conversation in 2015.  
+the trned towards taking things "in-house" peaked in 2014, but has not been as large a part of the conversation in 2015.   
 
 ```{r, echo=FALSE}
 
@@ -363,7 +371,7 @@ termToExplore1 <- 'inhous'
 
 ### politics
 
-big increase in the use of "politics." 
+big increase in the use of "politics." should see this continue to increase in 2016. 
 
 
 ```{r, echo=FALSE}
@@ -399,7 +407,7 @@ termToExplore1 <- 'polit'
 
 ### ipo
 
-big increase in the use of "politics." 
+we can see the ebbs adn flows of IPO chatter. end of 2014 there was a large amt of IPO talk. that has dropped a lot since then.  
 
 
 ```{r, echo=FALSE}
@@ -439,7 +447,7 @@ termToExplore1 <- 'ipo'
 
 ### omnichannel
 
-
+omnichannel / multichannel talk has been increasing through time. i see this continuing to rise in 2016. 
 
 ```{r echo=FALSE}
   
@@ -488,6 +496,7 @@ some conclusions
 * native advertising is less interesting in 2015 than in 2014. mobile peaked in 2013, likely everyone trying to get their "year of mobile" predictions in  
 * taking it "in-house" was much less a part of the conversation in 2015 than in 2014.  
 * politics is a growing topic, and will continue to be a big topic in 2016 with the election.  
-* discussions about adtech financial activity has declined since 2013, and we're currently in a trough
+* discussions about adtech IPOs has declined since the end of 20132013, and we're currently in a trough  
+* omnichannel will be a big topic in 2016
 
 
