@@ -1,12 +1,13 @@
 ---
 title: "adexchanger emails"
 author: "mark davenport"
-date: "December 30, 2015"
-output: ioslides_presentation
+date: "January 15, 2016"
+output: html_document
 runtime: shiny
 ---
 
-## most frequent terms
+## explore any terms
+
 
 ```{r echo=FALSE, include=FALSE}
 ## libraries
@@ -21,86 +22,10 @@ library(knitr)
 #setwd('/Users/markdavenport/Documents/adexchanger-emails/')
 #load('/Users/markdavenport/Documents/adexchanger-emails/dtm.RData')
 load('dtm.RData')
-
 terms2000 <- findFreqTerms(dtm, 2000)
 terms50 <- findFreqTerms(dtm, 50)
-```
-
-Most frequent terms (> 2000 mentions):
-```{r echo=FALSE }
-terms2000
 
 ```
-
-
-
-## explore most frequent terms
-
-```{r, echo=FALSE}
-
-inputPanel(
-  selectInput("term", label = "term:",
-              choices = terms2000, selected = 'accord')
-)
-
-
-renderPlot({
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare <- as.matrix(dtm[,which(colnames(dtm)==input$term)])
-#  term_to_compare <- as.matrix(dtm[,which(colnames(dtm)=='viewabl')])
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions'] <- as.numeric(term_to_compare/all_terms)
-  colnames(df) <- c('dt','percentMentions')
-
-  ggplot(data=df,aes(x=dt,y=percentMentions)) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Term:",input$term,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() 
-
-})
-
-```
-
-
-## explore any terms
-
-```{r, echo=FALSE}
-
-inputPanel(
-#  selectizeInput(inputId, label, choices, selected = NULL, multiple = FALSE,
-#               options = NULL)
-selectizeInput('termToExplore', label = NULL, choices = terms50,
-  options = list(create = TRUE)
-)
-)
-
-
-renderPlot({
-  all_terms <- rowSums(as.matrix(dtm))
-  term_to_compare <- as.matrix(dtm[,which(colnames(dtm)==input$termToExplore)])
-#  term_to_compare <- as.matrix(dtm[,which(colnames(dtm)=='viewabl')])
-  dts <- data.frame(as.Date(paste(substr(rownames(dtm),1,4),substr(rownames(dtm),5,6),'01',sep='/')))
-  
-  df <- data.frame(dts)
-  df[,'percentMentions'] <- as.numeric(term_to_compare/all_terms)
-  colnames(df) <- c('dt','percentMentions')
-
-  ggplot(data=df,aes(x=dt,y=percentMentions)) +
-    geom_point(shape=1) +    # Use hollow circles
-    ggtitle(paste("Term:",input$termToExplore,sep=" ")) +
-    xlab("Date of Newsletter") +
-    ylab("Proportion of words dedicated to term") + 
-    geom_smooth() 
-
-})
-
-```
-
-## explore any terms
 
 ```{r, echo=FALSE}
 fluidPage(
@@ -145,6 +70,7 @@ renderPlot({
 })
 
 ```
+
 
 
 ## word clouds by year

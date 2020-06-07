@@ -8,6 +8,9 @@ library(sqldf)
 library(ggplot2)
 library(dplyr)
 library(topicmodels)
+library (devtools)
+library(qdapRegex)
+
 
 ## read in all emails
 str <- '/Users/markdavenport/Documents/adexchanger/data/'
@@ -146,6 +149,19 @@ myCorpus <- tm_map(myCorpus,
                    content_transformer(function(x) iconv(x, to='UTF-8-MAC', sub='byte')),
                    mc.cores=1)
 
+### remove domains
+removeDomain <- function(x) rm_url(x, pattern=pastex("@rm_url"))
+myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+
+#removeDomain <- function(x) gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", x) # remove http://
+#myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+#removeDomain <- function(x) gsub(" ?(www)(.*)[.|/](.*)", "", x) # remove www.
+#myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+#removeDomain <- function(x) gsub(" (.*)[.com][|/](.*)", "", x) # remove .coms/something
+#myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+#removeDomain <- function(x) gsub(" (.*)[.com]", "", x) # remove .coms
+#myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+
 # convert to lower case # myCorpus <- tm_map(myCorpus, tolower)
 # tm v0.6
 myCorpus <- tm_map(myCorpus, content_transformer(tolower))
@@ -153,13 +169,9 @@ myCorpus <- tm_map(myCorpus, content_transformer(tolower))
 myCorpus <- tm_map(myCorpus, removePunctuation) 
 # remove numbers
 myCorpus <- tm_map(myCorpus, removeNumbers)
-# remove URLs
-removeURL <- function(x) gsub("http[[:alnum:]]*", "", x)
-### myCorpus <- tm_map(myCorpus, removeURL, lazy=TRUE) 
-myCorpus <- tm_map(myCorpus, content_transformer(removeURL))  #??
-removeDomain <- function(x) gsub("www[[:alnum:]]*", "", x)
-### myCorpus <- tm_map(myCorpus, removeURL, lazy=TRUE) 
-myCorpus <- tm_map(myCorpus, content_transformer(removeDomain))  #??
+
+
+## join TTD
 convertTTD <- function(x) gsub("the trade desk","thetradedesk",x)
 myCorpus <- tm_map(myCorpus, content_transformer(convertTTD))
 
@@ -176,23 +188,37 @@ myStopwords <- c(stopwords("english"),
                  'adexchangercom',
                  'newsletter',
                  'targetinfo',
-                 'adexchanger')
+                 'adexchanger',
+                 'roundup',
+                 'also')
 # remove stopwords from corpus
 myCorpus <- tm_map(myCorpus, removeWords, myStopwords)
-#
+
 #￼# keep a copy of corpus to use later as a dictionary for stem
 # completion
 myCorpusCopy <- myCorpus
 # stem words
-myCorpus <- tm_map(myCorpus, stemDocument)
+myCorpus <- tm_map(myCorpus, stemDocument, language="english")
 
 myCorpus <- tm_map(myCorpus, PlainTextDocument)
 
 dtm <-  DocumentTermMatrix(myCorpus)
+dtmNonStemmed <-  DocumentTermMatrix(myCorpusCopy)
+#dtmTFIDF <- DocumentTermMatrix(myCorpus,
+#                               control = list(weighting = function(x) weightTfIdf(x, normalize = FALSE)))
 rownames(dtm) <- df$date
+rownames(dtmNonStemmed) <- df$date
+#rownames(dtmTFIDF) <- df$date
 
-
-terms <- findFreqTerms(dtm, 1000)
+terms <- findFreqTerms(dtm,1000)
 terms
 
-save(dtm, file = "/Users/markdavenport/Documents/adexchanger/dtm.RData")
+terms <- findFreqTerms(dtmNonStemmed,1000)
+terms
+
+#termsTFIDF <- findFreqTerms(dtmTFIDF,100,1000)
+#termsTFIDF
+
+
+save(dtm, file = "/Users/markdavenport/Documents/adexchanger-emails/dtm.RData")
+save(dtmNonStemmed, file = "/Users/markdavenport/Documents/adexchanger-emails/dtmNonStemmed.RData")
